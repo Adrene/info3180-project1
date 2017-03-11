@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<form class="form-login" method="GET">
+  <h2>Sign up</h2>
+  {% if error %}
+    <div class="alert alert-danger">
+      <strong>Error:</strong> {{ error }}
+    </div>
+  {% endif %}
+  
+  <div class="form-group">
+    <label for="firstname" class="sr-only"> First Name</label>
+    <input type="text" id="first_name" name="first_name" class="form-control" placeholder = "First Name" required >
+  </div>
+ 
+  <div class="form-group">
+    <label for="lastname" class="sr-only"> Last Name</label>
+    <input type="text" id="last_name" name="last_name" class="form-control" placeholder = "Last Name" required>
+  </div>
+  
+  <div class="form-group">
+    <label for="_age_" class="sr-only"> Age </label>
+    <input type="text" id="age" name="age" class="form-control" placeholder = "Age" required>
+  </div>
+  
+  <br>
+  
+  <div class= "form-group">
+    <label class="radio-inline"><input type="radio" name="optradio" id="gender"> Female  </label>
+    <label class="radio-inline"><input type="radio" name="optradio" id="gender"> Male</label>
+    <label class="radio-inline"><input type="radio" name="optradio" id="gender">Gender is a social construct</label>
+  </div>
+  
+  <div class="form-group">
+    <label for="bio" class="sr-only"> Bio </label>
+    <input type="text" id="bio" name="bio" class="form-control" placeholder = "Give us a short bio" required>
+  </div>
+
+  <div class="form-group">
+    <label for="file">Upload your file</label>
+    <input type="file" name="file" id="pic" class="form-control" />
+  </div>
+  
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
+  
+</form>
+{% endblock %}
