@@ -8,6 +8,7 @@ import os
 from app import app
 from flask import render_template, request, redirect, url_for, flash, session, abort, jsonify
 from werkzeug.utils import secure_filename
+from forms import LoginForm
 
 
 ###
@@ -27,7 +28,6 @@ def about():
 
 @app.route('/profile/')
 def profile():
-    """Render the website's about page."""
     return render_template('profile.html')
 
 @app.route('/add-file', methods=['POST', 'GET'])
