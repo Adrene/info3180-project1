@@ -6,9 +6,25 @@ This file creates your application.
 """
 import os
 from app import app
+from fix import db
 from flask import render_template, request, redirect, url_for, flash, session, abort, jsonify
+from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from forms import LoginForm
+from models import UserProfile
+from time import strftime #generates time user is added
+from datetime import date, datetime
+import random # generates userID
+from flask import session
+from flask import jsonify
+from werkzeug import secure_filename
+from models import UserProfile
+
+
+
+
+UPLOAD_FOLDER = '.app/static/uploads'
+app.config ['UPLOAD FOLDER']=UPLOAD_FOLDER
 
 
 ###
@@ -26,26 +42,38 @@ def about():
     """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
 
+def getTime():
+    return time.strftime("%a, %d %b %Y")
+    
+
 @app.route('/profile/')
 def profile():
-    return render_template('profile.html')
-
-@app.route('/add-file', methods=['POST', 'GET'])
-def add_file():
-    if not session.get('logged_in'):
-        abort(401)
-
-    file_folder = ''
-
-    if request.method == 'POST':
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(file_folder, filename))
-
-        flash('File Saved')
+    form = LoginForm()
+    if request.method == "GET" and form.validate_on_submit():
+        userid  = random.randint(1, 1000)
+        first_name = form.first_name.data
+        last_name = form.last_name.data
+        username = form.username.data
+        age = form.age.data
+        gender = form.gender.data
+        bio = form.bio.data
+        pwd = form.pwd.data
+        file = request.files['img']
+        img = secure_filename(file.filename)
+        date_added = datetime.now().strftime("%a, %d, %b, %Y")  
+        file.save(os.path.join("app/static/uploads", img))
+        
+        new_user= UserProfile(userid, first_name, last_name, username, age. gender, bio, pwd, img, date_added)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash ("Sign up successful")
         return redirect(url_for('home'))
+            
+    return render_template('profile.html', form=form)
 
-    return render_template('add_file.html')
+
+
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -57,7 +85,7 @@ def login():
             session['logged_in'] = True
             
             flash('You were logged in')
-            return redirect(url_for('add_file'))
+            return redirect(url_for('allprofile'))
     return render_template('login.html', error=error)
 
 @app.route('/logout')
