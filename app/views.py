@@ -5,23 +5,17 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 import os
-from app import app
-from app import db
+from app import app, db, login_manager
 from flask import render_template, request, redirect, url_for, flash, session, abort, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
-from werkzeug.utils import secure_filename
 from forms import LoginForm
+from forms import CreateUser
 from models import UserProfile
-from time import strftime #generates time user is added
-from datetime import date, datetime
-import random # generates userID
-from flask import session
-from flask import jsonify
 from werkzeug import secure_filename
-from models import UserProfile
 
-
-
+import random
+from datetime import date, datetime
+from time import strftime 
 
 UPLOAD_FOLDER = '.app/static/uploads'
 app.config ['UPLOAD FOLDER']=UPLOAD_FOLDER
@@ -42,53 +36,57 @@ def about():
     """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
 
-def getTime():
-    return time.strftime("%a, %d %b %Y")
-    
-
-@app.route('/profile/')
+@app.route('/profile', methods=["GET", "POST"])
 def profile():
-    form = LoginForm()
-    if request.method == "GET" and form.validate_on_submit():
+    form = CreateUser()
+    if request.method == "post" and form.validate_on_submit():
+        
         userid  = random.randint(1, 1000)
-        first_name = form.first_name.data
-        last_name = form.last_name.data
+        firstname = form.firstname.data
+        lastname = form.lastname.data
         username = form.username.data
         age = form.age.data
         gender = form.gender.data
         bio = form.bio.data
-        pwd = form.pwd.data
-        file = request.files['img']
+        pwd = form.password.data
+        file = request.files['image']
         img = secure_filename(file.filename)
         date_added = datetime.now().strftime("%a, %d, %b, %Y")  
         file.save(os.path.join("app/static/uploads", img))
         
-        
-        
-        new_user= UserProfile(userid, first_name, last_name, username, age. gender, bio, pwd, img, date_added)
+        new_user= UserProfile(userid, firstname, lastname, username, age. gender, bio, pwd, img, date_added)
         db.session.add(new_user)
         db.session.commit()
         
-        flash ("Sign up successful")
-        return redirect(url_for('home'))
-            
+        flash ("Sign up successful", "success")
+        return redirect(url_for('profile'))
+    flash_errors(form)
     return render_template('profile.html', form=form)
 
-
+#handle form errors
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash("There is an error in %field - %s" % (getattr(form, field).label.text,error), "danger") 
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
-    error = None
-    if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME'] or request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid username or password'
+    form = LoginForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        
+        username = form.username.data
+        password = form.username.data
+        
+        user = UserProfile.query.filter_by(username=username, password=password).first()
+        
+        if user is not None:
+            login_user(user)
+            return redirect(url_for('securepage'))
         else:
-            session['logged_in'] = True
-            
-            flash('You were logged in')
-            return redirect(url_for('allprofile'))
-    return render_template('login.html', error=error)
+            return redirect(url_for('home'))
+        
+    return render_template('login.html', form=form)
 
 @app.route('/logout')
 def logout():
