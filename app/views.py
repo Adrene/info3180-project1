@@ -6,7 +6,7 @@ This file creates your application.
 """
 import os
 from app import app
-from fix import db
+from app import db
 from flask import render_template, request, redirect, url_for, flash, session, abort, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename

@@ -1,14 +1,17 @@
 from flask import Flask
-
-# Config Values
-USERNAME = 'admin'
-PASSWORD = 'password123'
-
-# SECRET_KEY is needed for session security, the flash() method in this case stores the message in a session
-SECRET_KEY = 'HuffLePuff'
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = "HuffLePuff"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://adrene:adrene@localhost/proj1"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True # added just to suppress a warning
+
+db = SQLAlchemy(app)
+
+# Flask-Login login manager
+login_manager = LoginManager()
+login_manager.init_app(app)
+
 app.config.from_object(__name__)
 from app import views
-from app import db
-
