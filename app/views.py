@@ -63,6 +63,8 @@ def profile():
         date_added = datetime.now().strftime("%a, %d, %b, %Y")  
         file.save(os.path.join("app/static/uploads", img))
         
+        
+        
         new_user= UserProfile(userid, first_name, last_name, username, age. gender, bio, pwd, img, date_added)
         db.session.add(new_user)
         db.session.commit()
