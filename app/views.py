@@ -34,12 +34,12 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html')
 
 @app.route('/profile', methods=["GET", "POST"])
 def profile():
     form = CreateUser()
-    if request.method == "post" and form.validate_on_submit():
+    if request.method == "POST" and form.validate_on_submit():
         
         userid  = random.randint(1, 1000)
         firstname = form.firstname.data
@@ -48,18 +48,19 @@ def profile():
         age = form.age.data
         gender = form.gender.data
         bio = form.bio.data
-        pwd = form.password.data
-        file = request.files['image']
+        file = request.files['img']
         img = secure_filename(file.filename)
-        date_added = datetime.now().strftime("%a, %d, %b, %Y")  
         file.save(os.path.join("app/static/uploads", img))
+        pwd = form.password.data
+        date_added = datetime.now().strftime("%a, %d, %b, %Y")
         
-        new_user= UserProfile(userid, firstname, lastname, username, age. gender, bio, pwd, img, date_added)
+        new_user= UserProfile(userid, firstname, lastname, username, age, gender, bio, img, pwd, date_added)
         db.session.add(new_user)
         db.session.commit()
         
-        flash ("Sign up successful", "success")
-        return redirect(url_for('profile'))
+        flash ('Sign up successful', 'success')
+        return redirect(url_for('secure_page'))
+        
     flash_errors(form)
     return render_template('profile.html', form=form)
 
@@ -67,7 +68,7 @@ def profile():
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
-            flash("There is an error in %field - %s" % (getattr(form, field).label.text,error), "danger") 
+            flash(u"There is an error in %s field - %s" % (getattr(form, field).label.text,error), 'danger') 
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -82,17 +83,49 @@ def login():
         
         if user is not None:
             login_user(user)
-            return redirect(url_for('securepage'))
-        else:
-            return redirect(url_for('home'))
+            return redirect(url_for('user_profile(userid)'))
+        # else:
+        #     return redirect(url_for('home'))
         
     return render_template('login.html', form=form)
+    
+    
+@app.route('/profiles', methods=['POST', 'GET'])
+def list_profiles():
+    user=db.session.query(UserProfile).all()
+    if request.method == "POST" and request.headers['Content-Type'] == 'application/json':
+        mylist=[]
+        for user in user:
+            mylist.append({'userid':user.userid,'username':user.username})
+            user = ({'users':mylist})
+        return jsonify (user)
+    return render_template('list_profiles.html', user=user)
+
+@app.route('/profile/<userid>', methods=['POST', 'GET'])
+def user_profile(userid):
+    user = UserProfile.query.filter_by(userid=userid).first()
+    img = '/static/uploads' + user.img
+    if request.method =="POST" and request.headers['Content-Type'] == 'application/json':
+        return jsonify (userid= user.userid, img=user.img, username = user.username, gender=user.gender, age= user.age, date_added=user.date_added)
+    else:
+        user = {'userid': user.userid, 'img': img, 'username':user.username, 'firstname':user.firstname, 'lastname':user.lastname, 'age':user.age, 'added':user.date_added}
+        return render_template ('user_profile.html', user=user)
+            
+
+
+
+@app.route('/securepage/')
+@login_required
+def secure_page():
+    return render_template('securepage.html')
+
 
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
     return redirect(url_for('home'))
+
 
 
 ###
