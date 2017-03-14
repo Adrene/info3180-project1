@@ -50,7 +50,7 @@ def profile():
         bio = form.bio.data
         file = request.files['img']
         img = secure_filename(file.filename)
-        file.save(os.path.join("app/static/uploads", img))
+        file.save(os.path.join("app/static/uploads ", img))
         pwd = form.password.data
         date_added = datetime.now().strftime("%a, %d, %b, %Y")
         
@@ -59,7 +59,7 @@ def profile():
         db.session.commit()
         
         flash ('Sign up successful', 'success')
-        return redirect(url_for('secure_page'))
+        return redirect(url_for('login'))
         
     flash_errors(form)
     return render_template('profile.html', form=form)
@@ -83,9 +83,9 @@ def login():
         
         if user is not None:
             login_user(user)
-            return redirect(url_for('user_profile(userid)'))
-        else:    
-            return redirect(url_for('secure_page'))
+            return redirect(url_for('home'))
+        # else:
+        #     return redirect(url_for('home'))
         
     return render_template('login.html', form=form)
     
@@ -97,21 +97,19 @@ def list_profiles():
         mylist=[]
         for user in user:
             mylist.append({'userid':user.userid,'username':user.username})
-            user = ({'user':mylist})
+            user = ({'users':mylist})
         return jsonify (user)
     return render_template('list_profiles.html', user=user)
-
 
 @app.route('/profile/<userid>', methods=['POST', 'GET'])
 def user_profile(userid):
     user = UserProfile.query.filter_by(userid=userid).first()
-    #img = '/static/uploads' + user.img
-    img = url_for('static',filename='uploads/'+ user.img)
+    img = '/static/uploads' + user.img
     if request.method =="POST" and request.headers['Content-Type'] == 'application/json':
         return jsonify (userid= user.userid, img=user.img, username = user.username, gender=user.gender, age= user.age, date_added=user.date_added)
     else:
-        user = {'userid': user.userid, 'img': img, 'username':user.username, 'firstname':user.firstname, 'lastname':user.lastname, 'age':user.age, 'added':user.date_added}
-        return render_template ('user_profile.html', user=user)
+        userl = {'userid': user.userid, 'img': img, 'username':user.username, 'firstname':user.firstname, 'lastname':user.lastname, 'age':user.age, 'added':user.date_added}
+        return render_template ('user_profile.html', userl=userl)
             
 
 
