@@ -84,8 +84,8 @@ def login():
         if user is not None:
             login_user(user)
             return redirect(url_for('user_profile(userid)'))
-        # else:
-        #     return redirect(url_for('home'))
+        else:    
+            return redirect(url_for('secure_page'))
         
     return render_template('login.html', form=form)
     
@@ -97,14 +97,16 @@ def list_profiles():
         mylist=[]
         for user in user:
             mylist.append({'userid':user.userid,'username':user.username})
-            user = ({'users':mylist})
+            user = ({'user':mylist})
         return jsonify (user)
     return render_template('list_profiles.html', user=user)
+
 
 @app.route('/profile/<userid>', methods=['POST', 'GET'])
 def user_profile(userid):
     user = UserProfile.query.filter_by(userid=userid).first()
-    img = '/static/uploads' + user.img
+    #img = '/static/uploads' + user.img
+    img = url_for('static',filename='uploads/'+ user.img)
     if request.method =="POST" and request.headers['Content-Type'] == 'application/json':
         return jsonify (userid= user.userid, img=user.img, username = user.username, gender=user.gender, age= user.age, date_added=user.date_added)
     else:
