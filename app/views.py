@@ -15,10 +15,12 @@ from werkzeug import secure_filename
 
 import random
 from datetime import date, datetime
+import time
 from time import strftime 
 
 UPLOAD_FOLDER = '.app/static/uploads'
 app.config ['UPLOAD FOLDER']=UPLOAD_FOLDER
+
 
 
 ###
@@ -50,7 +52,7 @@ def profile():
         bio = form.bio.data
         file = request.files['img']
         img = secure_filename(file.filename)
-        file.save(os.path.join("app/static/uploads ", img))
+        file.save(os.path.join("app/static/uploads", img))
         pwd = form.password.data
         date_added = datetime.now().strftime("%a, %d, %b, %Y")
         
@@ -83,7 +85,7 @@ def login():
         
         if user is not None:
             login_user(user)
-            return redirect(url_for('home'))
+            return redirect(url_for('about'))
         # else:
         #     return redirect(url_for('home'))
         
@@ -93,7 +95,7 @@ def login():
 @app.route('/profiles', methods=['POST', 'GET'])
 def list_profiles():
     user=db.session.query(UserProfile).all()
-    if request.method == "POST" and request.headers['Content-Type'] == 'application/json':
+    if request.method == 'POST' or ('Content-Type' in request.headers and request.headers['Content-Type'] == 'application/json'):
         mylist=[]
         for user in user:
             mylist.append({'userid':user.userid,'username':user.username})
@@ -104,16 +106,14 @@ def list_profiles():
 @app.route('/profile/<userid>', methods=['POST', 'GET'])
 def user_profile(userid):
     user = UserProfile.query.filter_by(userid=userid).first()
-    img = '/static/uploads' + user.img
-    if request.method =="POST" and request.headers['Content-Type'] == 'application/json':
-        return jsonify (userid= user.userid, img=user.img, username = user.username, gender=user.gender, age= user.age, date_added=user.date_added)
+    img = '/static/uploads/' + user.img
+    if request.method == 'POST' or ('Content-Type' in request.headers and request.headers['Content-Type'] == 'application/json'):
+        return jsonify (userid= user.userid, img=img, username = user.username, gender=user.gender, age= user.age, date_added=user.date_added)
     else:
         userl = {'userid': user.userid, 'img': img, 'username':user.username, 'firstname':user.firstname, 'lastname':user.lastname, 'age':user.age, 'added':user.date_added}
         return render_template ('user_profile.html', userl=userl)
             
-
-
-
+            
 @app.route('/securepage/')
 @login_required
 def secure_page():
